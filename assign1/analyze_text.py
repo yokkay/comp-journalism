@@ -17,14 +17,16 @@ def tokenize(a_string):
     return a_string.split() # splitting on whitespace, not space char
 
 
-def tf(tokens):
+def count(tokens, df_counts):
     """
     Returns dict of word counts (can use join later to merge into corpus dict)
     """
-    counts = defaultdict(int)
+    tf_counts = defaultdict(int)
     for token in tokens:
-        counts[token] += 1
-    return counts
+        tf_counts[token] += 1
+    for term in tf_counts:
+        df_counts[term] += 1
+    return tf_counts, df_counts
 
 
 def main():
@@ -38,10 +40,16 @@ def main():
         with open(arg, 'rb') as csv_file:
             csv.field_size_limit(sys.maxsize) # 'speech' field often larger than default field size limit
             reader = csv.reader(csv_file, quotechar='"')
+
+            years = []
+            all_tf_counts = []
+            df_counts = defaultdict(int) # maps term to number of documents term appears in
+
             for row in reader:
-                year = row[0]
+                years.append(row[0])
                 tokens = tokenize(row[1])
-                counts = tf(tokens)
+                tf_counts, df_counts = count(tokens, df_counts)
+                all_tf_counts.append(tf_counts)
 
 
 if __name__ == "__main__":
