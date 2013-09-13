@@ -14,7 +14,7 @@ def tokenize(a_string):
     a_string = a_string.lower()
     table = string.maketrans("","")
     a_string = a_string.translate(table, string.punctuation)
-    return a_string.split(" ")
+    return a_string.split() # splitting on whitespace, not space char
 
 
 def main():
@@ -26,9 +26,11 @@ def main():
 
     for arg in args:
         with open(arg, 'rb') as csv_file:
+            csv.field_size_limit(sys.maxsize) # 'speech' field often larger than default field size limit
             reader = csv.reader(csv_file, quotechar='"')
             for row in reader:
-                print row[0], row[1].split()[:2]
+                year = row[0]
+                tokens = tokenize(row[1])
 
 
 if __name__ == "__main__":
