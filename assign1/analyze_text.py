@@ -29,6 +29,13 @@ def count(tokens, df_counts):
     return tf_counts, df_counts
 
 
+def tfidf(num_docs, tf_count, df_count):
+    def idf(term): return log(num_docs/df_count[term])
+    def tf(term): return tf_count[term]
+
+    # TODO: create tfidf vector for document
+    # maintain ordering from df_count
+
 def main():
     args = sys.argv[1:]
 
@@ -43,14 +50,18 @@ def main():
 
             years = []
             all_tf_counts = []
-            df_counts = defaultdict(int) # maps term to number of documents term appears in
+            df_count = defaultdict(int) # maps term to number of documents term appears in
 
             for row in reader:
                 years.append(row[0])
                 tokens = tokenize(row[1])
-                tf_counts, df_counts = count(tokens, df_counts)
-                all_tf_counts.append(tf_counts)
+                tf_count, df_count = count(tokens, df_count)
+                all_tf_counts.append(tf_count)
 
+            tfidf_vectors = []
+            for tf_count in all_tf_counts:
+                vector = tfidf(len(years), tf_count, df_count)
+                tfidf_vectors.append(vector)
 
 if __name__ == "__main__":
     main()
