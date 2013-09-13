@@ -1,7 +1,7 @@
 import sys
 import csv
 import string
-
+from collections import defaultdict
 
 def tokenize(a_string):
     """
@@ -15,6 +15,16 @@ def tokenize(a_string):
     table = string.maketrans("","")
     a_string = a_string.translate(table, string.punctuation)
     return a_string.split() # splitting on whitespace, not space char
+
+
+def tf(tokens):
+    """
+    Returns dict of word counts (can use join later to merge into corpus dict)
+    """
+    counts = defaultdict(int)
+    for token in tokens:
+        counts[token] += 1
+    return counts
 
 
 def main():
@@ -31,6 +41,7 @@ def main():
             for row in reader:
                 year = row[0]
                 tokens = tokenize(row[1])
+                counts = tf(tokens)
 
 
 if __name__ == "__main__":
