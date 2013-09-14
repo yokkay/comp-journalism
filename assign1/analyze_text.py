@@ -1,8 +1,10 @@
+from math import *
+from collections import defaultdict
 import sys
 import csv
 import string
-from math import *
-from collections import defaultdict
+import json
+
 
 def tokenize(a_string):
     """
@@ -78,6 +80,9 @@ def main():
                 vector = tfidf(num_docs, tf_count, df_count)
                 tfidf_vectors[year] = vector
 
+            top_20 = sorted(tfidf_vectors['1980'], key=tfidf_vectors['1980'].get, reverse=True)[:20]
+            for term in top_20:
+                print "%s %f" % (term, tfidf_vectors['1980'][term])
 
 if __name__ == "__main__":
     main()
