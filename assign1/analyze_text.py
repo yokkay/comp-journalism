@@ -1,6 +1,7 @@
 import sys
 import csv
 import string
+from math import *
 from collections import defaultdict
 
 def tokenize(a_string):
@@ -33,8 +34,15 @@ def tfidf(num_docs, tf_count, df_count):
     def idf(term): return log(num_docs/df_count[term])
     def tf(term): return tf_count[term]
 
-    # TODO: create tfidf vector for document
-    # maintain ordering from df_count
+    vector = []
+    for term in df_count:
+        tfidf = tf(term) * idf(term)
+        vector.append(tfidf)
+
+    # TODO: normalize so weights sum to 1
+
+    return vector
+
 
 def main():
     args = sys.argv[1:]
@@ -61,7 +69,10 @@ def main():
             tfidf_vectors = []
             for tf_count in all_tf_counts:
                 vector = tfidf(len(years), tf_count, df_count)
+                print len(vector)
                 tfidf_vectors.append(vector)
+
+            
 
 if __name__ == "__main__":
     main()
