@@ -31,19 +31,20 @@ def count(tokens, df_counts):
 
 
 def tfidf(num_docs, tf_count, df_count):
+    """
+    Returns "vector" (defaultdict) of tfidf weights which sum to 1
+    """
     def idf(term): return log(num_docs/df_count[term])
     def tf(term): return tf_count[term]
 
-    vector = []
+    vector = defaultdict(float) # note this is not a list
     for term in df_count:
         tfidf = tf(term) * idf(term)
-        vector.append(tfidf)
+        vector[term] = tfidf
 
-    total = sum(vector)
-    for i, value in enumerate(vector):
-        vector[i] = value/total # make sure vector sums to 1
-
-    print >> sys.stderr, "Sum of weights: %f" % sum(vector)
+    total = sum(vector.values())
+    for term in vector:
+        vector[term] = vector[term]/total # make sure vector sums to 1
 
     return vector
 
@@ -73,9 +74,7 @@ def main():
             tfidf_vectors = []
             for tf_count in all_tf_counts:
                 vector = tfidf(len(years), tf_count, df_count)
-                print len(vector)
                 tfidf_vectors.append(vector)
-
             
 
 if __name__ == "__main__":
