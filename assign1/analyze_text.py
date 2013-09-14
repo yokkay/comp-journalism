@@ -61,21 +61,23 @@ def main():
             csv.field_size_limit(sys.maxsize) # 'speech' field often larger than default field size limit
             reader = csv.reader(csv_file, quotechar='"')
 
-            years = []
-            all_tf_counts = []
+            all_tf_counts = {}
             df_count = defaultdict(int) # maps term to number of documents term appears in
 
             for row in reader:
-                years.append(row[0])
+                year = row[0]
                 tokens = tokenize(row[1])
                 tf_count, df_count = count(tokens, df_count)
-                all_tf_counts.append(tf_count)
+                all_tf_counts[year] = tf_count
 
-            tfidf_vectors = []
-            for tf_count in all_tf_counts:
+            tfidf_vectors = {}
+            for year in all_tf_counts:
+                tf_count = all_tf_counts[year]
                 vector = tfidf(len(years), tf_count, df_count)
-                tfidf_vectors.append(vector)
+                tfidf_vectors[year] = vector
             
+            
+
 
 if __name__ == "__main__":
     main()
