@@ -39,7 +39,11 @@ def tfidf(num_docs, tf_count, df_count):
         tfidf = tf(term) * idf(term)
         vector.append(tfidf)
 
-    # TODO: normalize so weights sum to 1
+    total = sum(vector)
+    for i, value in enumerate(vector):
+        vector[i] = value/total # make sure vector sums to 1
+
+    print >> sys.stderr, "Sum of weights: %f" % sum(vector)
 
     return vector
 
