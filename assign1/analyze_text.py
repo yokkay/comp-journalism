@@ -75,23 +75,22 @@ def main():
             reader = csv.reader(csv_file, quotechar='"')
 
             num_docs = 0
-            all_tf_counts = {}
+            all_tf_counts = defaultdict(list) # will map year to speech(es) made in that year
             df_count = defaultdict(int) # maps term to number of documents term appears in
 
             for row in reader:
-                # TODO: Remembered years aren't unique identifier... must change index
                 num_docs += 1
                 year = row[0]
                 tokens = tokenize(row[1])
                 tf_count, df_count = count(tokens, df_count)
-                all_tf_counts[year] = tf_count
+                all_tf_counts[year] += [tf_count] # append to list in case there are multiple speeches per year
 
-            tfidf_vectors = {}
+            tfidf_vectors = defaultdict(list)
             for year in all_tf_counts:
-                print >> sys.stderr, "Computing tfidf for year %s" % year
-                tf_count = all_tf_counts[year]
-                vector = tfidf(num_docs, tf_count, df_count)
-                tfidf_vectors[year] = vector
+                for speech in all_tf_counts[year]:
+                    tf_count = speech
+                    vector = tfidf(num_docs, tf_count, df_count)
+                    tfidf_vectors[year] += [vector]
             
             print json.dumps(tfidf_vectors)
 
@@ -100,17 +99,37 @@ def main():
         print >> sys.stderr, "Loading json from %s..." % args[1]
         tfidf_vectors = json.load(open(args[1], 'rb'))
         print >> sys.stderr, "Loaded json, now getting top 20 in year %s" % year
+        
         if year in tfidf_vectors:
-            vector = tfidf_vectors[year]
-            top_20 = sorted(vector, key=vector.get, reverse=True)[:20]
+            sum_vector = defaultdict(float)
+            for speech in tfidf_vectors[year]:
+                for term in speech:
+                    sum_vector[term] += speech[term]
+
+            top_20 = sorted(sum_vector, key=sum_vector.get, reverse=True)[:20]
             for term in top_20:
-                print "%s %f" % (term, vector[term])
+                print "%s %f" % (term, sum_vector[term])
         else:
             print >> sys.stderr, "Error: %s not in json %s" % (year, args[1])
 
     elif mode == 'TOP-DECADE':
         year = int(args[0])
-        years = [year + i for i in range(0,10)]        
+        years = [year + i for i in range(0,10)]
+        tfidf_vectors = json.load(open(args[1], 'rb'))
+        
+        sum_vector = defaultdict(float)
+        for year in years:
+            year = str(year)
+            if year in tfidf_vectors:
+                for speech in tfidf_vectors[year]:
+                    for term in speech:
+                        sum_vector[term] += speech[term]
+            else:
+                print >> sys.stderr, "No speeches made in year %s" % year
+
+        top_20 = sorted(sum_vector, key=sum_vector.get, reverse=True)[:20]
+        for term in top_20:
+            print "%s %f" % (term, sum_vector[term])
 
     else:
         print >> sys.stderr, "Error: %s not valid mode" % mode
