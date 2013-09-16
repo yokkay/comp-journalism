@@ -51,15 +51,26 @@ def tfidf(num_docs, tf_count, df_count):
     return vector
 
 
+def usage():
+    print >> sys.stderr, "Usage:"
+    print >> sys.stderr, "python analyze_text.py TFIDF [csv] > [json]"
+    print >> sys.stderr, "python analyze_text.py TOP-YEAR [year] [TFIDF json output]"
+    print >> sys.stderr, "python analyze_text.py TOP-DECADE [year beginning decade] [TFIDF json output]"
+
+
 def main():
     args = sys.argv[1:]
 
     if not args:
-        print >> sys.stderr, "No args passed" 
+        print >> sys.stderr, "Error: No args passed" 
+        usage()
         sys.exit(1)
 
-    for arg in args:
-        with open(arg, 'rb') as csv_file:
+    mode = args[0]
+    args = args[1:]
+
+    if mode == 'TFIDF':
+        with open(args[0], 'rb') as csv_file:
             csv.field_size_limit(sys.maxsize) # 'speech' field often larger than default field size limit
             reader = csv.reader(csv_file, quotechar='"')
 
@@ -68,6 +79,7 @@ def main():
             df_count = defaultdict(int) # maps term to number of documents term appears in
 
             for row in reader:
+                # TODO: Remembered years aren't unique identifier... must change index
                 num_docs += 1
                 year = row[0]
                 tokens = tokenize(row[1])
@@ -76,13 +88,34 @@ def main():
 
             tfidf_vectors = {}
             for year in all_tf_counts:
+                print >> sys.stderr, "Computing tfidf for year %s" % year
                 tf_count = all_tf_counts[year]
                 vector = tfidf(num_docs, tf_count, df_count)
                 tfidf_vectors[year] = vector
+            
+            print json.dumps(tfidf_vectors)
 
-            top_20 = sorted(tfidf_vectors['1980'], key=tfidf_vectors['1980'].get, reverse=True)[:20]
+    elif mode == 'TOP-YEAR':
+        year = args[0]
+        print >> sys.stderr, "Loading json from %s..." % args[1]
+        tfidf_vectors = json.load(open(args[1], 'rb'))
+        print >> sys.stderr, "Loaded json, now getting top 20 in year %s" % year
+        if year in tfidf_vectors:
+            vector = tfidf_vectors[year]
+            top_20 = sorted(vector, key=vector.get, reverse=True)[:20]
             for term in top_20:
-                print "%s %f" % (term, tfidf_vectors['1980'][term])
+                print "%s %f" % (term, vector[term])
+        else:
+            print >> sys.stderr, "Error: %s not in json %s" % (year, args[1])
+
+    elif mode == 'TOP-DECADE':
+        year = int(args[0])
+        years = [year + i for i in range(0,10)]        
+
+    else:
+        print >> sys.stderr, "Error: %s not valid mode" % mode
+        usage()
+
 
 if __name__ == "__main__":
     main()
