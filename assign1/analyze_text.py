@@ -11,7 +11,7 @@ def tokenize(a_string):
     Tokenize string per scheme: 
     (1) convert all chars to lowercase
     (2) remove all punctuation
-    (3) split on space
+    (3) split on whitespace
     """
 
     a_string = a_string.lower()
