@@ -8,7 +8,8 @@ def insert_link(start, end, doc, url):
     Creates hyperlink at string[start:] to string[:end]
     Indexes string by text not within angled brackets
     '''
-    inside_tag = None
+    inside_tag = False
+    max_i = 0
     i, true_start, true_end = 0, 0, 0
     for j, ch in enumerate(doc):
         if ch == '<':
@@ -22,13 +23,14 @@ def insert_link(start, end, doc, url):
                 true_end = j
             i += 1
 
+    #print start, end, true_start, true_end, doc[true_start:true_end],  "<br>"
     h = HTMLParser.HTMLParser()
-    s = str(h.unescape(doc[:true_start]))
-    t = str(url)
-    u = str(h.unescape(doc[true_start:true_end]))
-    v = str(h.unescape(doc[true_end:]))
+    pre = str(h.unescape(doc[:true_start]))
+    url = str(url)
+    text = str(h.unescape(doc[true_start:true_end]))
+    suff = str(h.unescape(doc[true_end:]))
     
-    return "%s<a href=\"%s\">%s</a>%s" % (s, t, u, v)
+    return "%s<a href=\"%s\">%s</a>%s" % (pre, url, text, suff)
 
 def add_links(entities, doc_string):
     """ Add links to doc_string given entities list """
@@ -40,6 +42,7 @@ def add_links(entities, doc_string):
             url = "http://en.wikipedia.org/wiki/%s" % entity['name']
             url = url.replace(" ", "_")
         
+        #print entity['name'], len(entity['instances']), '<br>'
         for instance in entity['instances']:
             offset = instance['offset']
             length = instance['length']
@@ -62,6 +65,8 @@ def main():
         sys.exit(1)
 
     input = sys.stdin.read() # read from stdin
+    input = input.replace("<", "")
+    input = input.replace(">", "")
 
     api_key = config.read_config('calais', 'api_key')
     calais = Calais(api_key, submitter="fridakahlo")
@@ -70,9 +75,8 @@ def main():
     #for e in entities: print e['name'], len(e['instances']), '<br>'
 
     linked_text = add_links(entities, input)
-    for line in linked_text.split("\n"):
-        print line, "<br>",
-
+    for line in linked_text.splitlines():
+        print "<p>", line, "<p>"
 
 if __name__ == "__main__":
     main()
